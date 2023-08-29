@@ -1,0 +1,46 @@
+management:
+  health:
+    redis:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus"
+server:
+  port: 1010
+
+spring:
+  redis:
+    port: 32768
+    password: redispw
+  cloud:
+    gateway:
+      routes:
+        - id: "200 Ok"
+          uri: "http://httpstat.us/200"
+          predicates:
+            - Path=/200
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 4
+                redis-rate-limiter.requestedTokens: 1
+        - id: "300 Multiple Choices"
+          uri: "http://httpstat.us/300"
+          predicates:
+            - Path=/300
+        - id: "401 Not Authorized"
+          uri: "http://httpstat.us/401"
+          predicates:
+            - Path=/401
+        - id: "404 Not Found"
+          uri: "http://httpstat.us/401"
+          predicates:
+            - Path=/404
+        - id: "500 Internal Server Error"
+          uri: "http://httpstat.us/401"
+          predicates:
+            - Path=/500
+      redis-rate-limiter:
+        burst-capacity-header:
